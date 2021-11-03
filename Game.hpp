@@ -17,6 +17,8 @@ private:
 
   sf::RenderWindow mwindow;
   Minefield map;
+
+  static constexpr double FPS = 60.f;
 };
 
 #endif

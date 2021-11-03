@@ -5,7 +5,14 @@ Game::Game()
       map(sf::Vector2u(480, 480)) {}
 
 void Game::run() {
+  sf::Clock clock;
+  sf::Time timer;
+  const sf::Time TIME_PER_FRAME = sf::seconds(1.f / Game::FPS);
   while (mwindow.isOpen()) {
+    timer = sf::Time::Zero;
+    while (timer < TIME_PER_FRAME) {
+      timer += clock.restart();
+    }
     handleEvents();
     update();
     render();
