@@ -2,7 +2,7 @@
 
 Game::Game()
     : mwindow(sf::VideoMode(480, 480), "Mineswepper", sf::Style::Close),
-      map(sf::Vector2u(480, 480)) {}
+      map(mwindow.getSize()) {}
 
 void Game::run() {
   sf::Clock clock;
@@ -29,15 +29,21 @@ void Game::handleEvents() {
         mwindow.close();
       }
     } else if (event.type == sf::Event::MouseButtonPressed) {
-      map.update(sf::Vector2u(event.mouseButton.x, event.mouseButton.y));
+      map.click(event.mouseButton.button,
+                sf::Vector2u(event.mouseButton.x, event.mouseButton.y));
     }
   }
 }
 
-void Game::update() {}
+void Game::update() {
+  stats.update(map.get_bombs_left(), map.get_bomb_amount());
+  if (map.is_game_running()) {
+  }
+}
 
 void Game::render() {
   mwindow.clear(sf::Color::White);
   mwindow.draw(map);
+  mwindow.draw(stats);
   mwindow.display();
 }

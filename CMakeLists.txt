@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 file(GLOB SRC_FILES *.cpp)
 
-add_executable(mineswepper ${SRC_FILES} Minefield.cpp)
+add_executable(mineswepper ${SRC_FILES})
 target_link_libraries(mineswepper PUBLIC sfml-main)
 target_link_libraries(mineswepper PUBLIC sfml-system)
 target_link_libraries(mineswepper PUBLIC sfml-graphics)
