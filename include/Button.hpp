@@ -5,17 +5,18 @@
 
 class Button : public sf::Drawable {
 public:
-  typedef void (*buttonCallback)();
+  explicit Button(sf::Vector2f position, sf::Vector2f scale = {1.f, 1.f});
+  Button() = delete;
 
-  Button(sf::Vector2f position, sf::Vector2f scale = {1.f, 1.f});
-  virtual void draw(sf::RenderTarget &target,
-                    sf::RenderStates states) const override;
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
   bool is_hover(const sf::Vector2f &position) const;
-  void on_button_click(buttonCallback callback);
   void click();
   void release();
 
-  sf::Vector2f get_size();
+  typedef void (*buttonCallback)();
+  void on_button_click(buttonCallback callback);
+  sf::Vector2f get_size() const;
   void set_position(const sf::Vector2f &position);
 
 private:

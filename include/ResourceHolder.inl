@@ -1,5 +1,5 @@
 template <typename T, typename U>
-bool RH<T, U>::load(U id, const std::string path) {
+bool RH<T, U>::load(U id, const std::string &path) {
   std::unique_ptr<T> resource(new T);
   if (resource->loadFromFile(path) == false) {
     return false;

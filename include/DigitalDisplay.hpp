@@ -29,11 +29,11 @@ private:
 };
 
 template class DigitalDisplay<1>;
-template class DigitalDisplay<3>;
+template class DigitalDisplay<4>;
 template class DigitalDisplay<6>;
 
 typedef DigitalDisplay<1> SmallDigitalDisplay;
-typedef DigitalDisplay<3> NormalDigitalDisplay;
+typedef DigitalDisplay<4> NormalDigitalDisplay;
 typedef DigitalDisplay<6> BigDigitalDisplay;
 
 #endif

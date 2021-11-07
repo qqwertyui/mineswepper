@@ -4,7 +4,12 @@
 #include <SFML/Audio.hpp>
 #include <map>
 
-enum class Sounds { TILE_CLICK = 0, TILE_FLAG_TOGGLE = 1, BOMB_EXPLOSION = 2 };
+enum class Sounds {
+  TILE_CLICK = 0,
+  TILE_FLAG_TOGGLE = 1,
+  BOMB_EXPLOSION = 2,
+  WIN_SOUND = 3
+};
 
 class SoundManager : sf::NonCopyable {
 public:

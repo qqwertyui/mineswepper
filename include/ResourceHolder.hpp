@@ -8,7 +8,7 @@
 
 template <typename T, typename U> class RH : sf::NonCopyable {
 public:
-  static bool load(U id, const std::string path);
+  static bool load(U id, const std::string &path);
   static T *get(U id);
 
 private:

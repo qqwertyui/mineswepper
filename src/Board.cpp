@@ -26,7 +26,7 @@ void Board::reset() {
   }
   std::vector<sf::Vector2u> bombs = generate_bombs();
   for (sf::Vector2u &v : bombs) {
-    m_tiles[v.x][v.y].set_bomb();
+    m_tiles[v.x][v.y].plant_bomb();
   }
   m_board_active = true;
 }
@@ -47,7 +47,7 @@ void Board::detonate_all_bombs() {
   for (auto x = 0; x < Board::BOARD_SIZE; x++) {
     for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       Tile &current = m_tiles[x][y];
-      if (current.is_bomb() == true && current.is_clicked() == false) {
+      if (current.is_bomb_planted() == true && current.is_clicked() == false) {
         current.click(0);
       }
     }
@@ -65,7 +65,7 @@ void Board::click(sf::Mouse::Button button, sf::Vector2u click_position) {
   if (button == sf::Mouse::Button::Left) {
     if (tile->is_flagged() == false) {
       tile->click(count_bombs_nearby(*tile));
-      if (tile->is_bomb()) {
+      if (tile->is_bomb_planted()) {
         lose_game();
       } else {
         uncover_empty_tiles(*tile);
@@ -163,7 +163,7 @@ int Board::get_bombs_number() const {
   int bombs = 0;
   for (auto x = 0; x < Board::BOARD_SIZE; x++) {
     for (auto y = 0; y < Board::BOARD_SIZE; y++) {
-      if (m_tiles[x][y].is_bomb()) {
+      if (m_tiles[x][y].is_bomb_planted()) {
         bombs += 1;
       }
     }
@@ -172,7 +172,7 @@ int Board::get_bombs_number() const {
 }
 
 Tile *Board::get_top_tile(Tile &tile) {
-  sf::Vector2u pos = tile.get_position();
+  sf::Vector2u pos = tile.get_coords();
   if (pos.y > 0) {
     return &m_tiles[pos.x][pos.y - 1];
   }
@@ -180,7 +180,7 @@ Tile *Board::get_top_tile(Tile &tile) {
 }
 
 Tile *Board::get_right_tile(Tile &tile) {
-  sf::Vector2u pos = tile.get_position();
+  sf::Vector2u pos = tile.get_coords();
   if (pos.x < (BOARD_SIZE - 1)) {
     return &m_tiles[pos.x + 1][pos.y];
   }
@@ -188,7 +188,7 @@ Tile *Board::get_right_tile(Tile &tile) {
 }
 
 Tile *Board::get_bottom_tile(Tile &tile) {
-  sf::Vector2u pos = tile.get_position();
+  sf::Vector2u pos = tile.get_coords();
   if (pos.y < (BOARD_SIZE - 1)) {
     return &m_tiles[pos.x][pos.y + 1];
   }
@@ -196,7 +196,7 @@ Tile *Board::get_bottom_tile(Tile &tile) {
 }
 
 Tile *Board::get_left_tile(Tile &current) {
-  sf::Vector2u pos = current.get_position();
+  sf::Vector2u pos = current.get_coords();
   if (pos.x > 0) {
     return &m_tiles[pos.x - 1][pos.y];
   }
@@ -208,7 +208,7 @@ int Board::count_bombs_nearby(Tile &current) {
   int result = 0;
   for (Tile *t : sides) {
     if (t) {
-      result += (t->is_bomb()) ? 1 : 0;
+      result += (t->is_bomb_planted()) ? 1 : 0;
     }
   }
   return result;

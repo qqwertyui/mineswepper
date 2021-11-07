@@ -23,7 +23,7 @@ void Button::release() {
   m_button.setTexture(*TextureHolder::get(Textures::BUTTON_UNCLICKED));
 }
 
-sf::Vector2f Button::get_size() {
+sf::Vector2f Button::get_size() const {
   return sf::Vector2f(m_button.getGlobalBounds().width,
                       m_button.getGlobalBounds().height);
 }
