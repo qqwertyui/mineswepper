@@ -1,10 +1,10 @@
 #include "Board.hpp"
 #include "ResourceHolder.hpp"
-#include <chrono>
-#include <random>
+#include "SoundManager.hpp"
+#include "Utils.hpp"
 
 Board::Board(const sf::IntRect &board) {
-  m_tile_size = (float)board.width / (float)Board::SQUARE_SIZE;
+  m_tile_size = (float)board.width / (float)Board::BOARD_SIZE;
   sf::Texture *txt_tile_unclicked =
       TextureHolder::get(Textures::TILE_UNCLICKED);
   m_scale_factor =
@@ -15,19 +15,18 @@ Board::Board(const sf::IntRect &board) {
 }
 
 void Board::reset() {
-  std::vector<sf::Vector2u> bombs = generate_bombs();
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       sf::Vector2f tile_global_position = {
           x * m_tile_size + m_global_position.left,
           y * m_tile_size + m_global_position.top};
       m_tiles[x][y] =
           Tile(sf::Vector2u(x, y), tile_global_position, m_scale_factor);
-      auto it = std::find(bombs.begin(), bombs.end(), sf::Vector2u(x, y));
-      if (it != bombs.end()) {
-        m_tiles[x][y].set_bomb();
-      }
     }
+  }
+  std::vector<sf::Vector2u> bombs = generate_bombs();
+  for (sf::Vector2u &v : bombs) {
+    m_tiles[v.x][v.y].set_bomb();
   }
   m_board_active = true;
 }
@@ -37,11 +36,16 @@ void Board::lose_game() {
   m_board_active = false;
 }
 
-void Board::win_game() { m_board_active = false; }
+void Board::win_game() {
+  SoundManager::play(Sounds::WIN_SOUND);
+  m_board_active = false;
+}
+
+bool Board::is_board_active() const { return m_board_active; }
 
 void Board::detonate_all_bombs() {
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       Tile &current = m_tiles[x][y];
       if (current.is_bomb() == true && current.is_clicked() == false) {
         current.click(0);
@@ -50,12 +54,11 @@ void Board::detonate_all_bombs() {
   }
 }
 
-void Board::click(sf::Mouse::Button button, sf::Vector2u clickPosition) {
+void Board::click(sf::Mouse::Button button, sf::Vector2u click_position) {
   if (m_board_active == false) {
     return;
   }
-
-  Tile *tile = find_tile_by_position(clickPosition);
+  Tile *tile = find_tile_by_position(click_position);
   if (tile == nullptr) {
     return;
   }
@@ -101,8 +104,8 @@ void Board::highlight_active_tile(const sf::Vector2u &mouse_position) {
 
 int Board::get_unclicked_tiles() const {
   int unclicked = 0;
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       const Tile &tile = m_tiles[x][y];
       if (tile.is_clicked() == false) {
         unclicked += 1;
@@ -114,8 +117,8 @@ int Board::get_unclicked_tiles() const {
 
 Tile *Board::find_tile_by_position(const sf::Vector2u &position) {
   sf::Vector2f f_position(position.x, position.y);
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       Tile &tile = m_tiles[x][y];
       if (tile.contains(f_position)) {
         return &tile;
@@ -126,33 +129,18 @@ Tile *Board::find_tile_by_position(const sf::Vector2u &position) {
 }
 
 void Board::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       target.draw(m_tiles[x][y], states);
     }
   }
 }
 
 std::vector<sf::Vector2u> Board::generate_bombs() {
-  const int total_fields = Board::SQUARE_SIZE * Board::SQUARE_SIZE;
-  const int needed_fields =
-      Board::DEFAULT_COVERAGE * static_cast<double>(total_fields);
-  std::uniform_int_distribution<unsigned int> wrapper(0,
-                                                      Board::SQUARE_SIZE - 1);
-  std::mt19937 rng(std::chrono::system_clock::now().time_since_epoch().count());
-  std::vector<sf::Vector2u> result;
-  for (int i = 0; i < needed_fields;) {
-    sf::Vector2u t = {wrapper(rng), wrapper(rng)};
-    auto it =
-        std::find_if(result.begin(), result.end(), [&t](sf::Vector2u current) {
-          return (t.x == current.x && t.y == current.y) ? true : false;
-        });
-    if (it == result.end()) {
-      result.push_back(t);
-      i += 1;
-    }
-  }
-  return result;
+  const int total_fields = Board::BOARD_SIZE * Board::BOARD_SIZE;
+  const int bombs = Board::BOMB_COVERAGE * total_fields;
+  return Utils::get_random_unique_vectors(Board::BOARD_SIZE, Board::BOARD_SIZE,
+                                          bombs);
 }
 
 int Board::get_bombs_left() const {
@@ -161,8 +149,8 @@ int Board::get_bombs_left() const {
 
 int Board::get_flagged_tiles() const {
   int flags = 0;
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       if (m_tiles[x][y].is_flagged()) {
         flags += 1;
       }
@@ -173,8 +161,8 @@ int Board::get_flagged_tiles() const {
 
 int Board::get_bombs_number() const {
   int bombs = 0;
-  for (auto x = 0; x < Board::SQUARE_SIZE; x++) {
-    for (auto y = 0; y < Board::SQUARE_SIZE; y++) {
+  for (auto x = 0; x < Board::BOARD_SIZE; x++) {
+    for (auto y = 0; y < Board::BOARD_SIZE; y++) {
       if (m_tiles[x][y].is_bomb()) {
         bombs += 1;
       }
@@ -182,8 +170,6 @@ int Board::get_bombs_number() const {
   }
   return bombs;
 }
-
-bool Board::is_board_active() const { return m_board_active; }
 
 Tile *Board::get_top_tile(Tile &tile) {
   sf::Vector2u pos = tile.get_position();
@@ -195,7 +181,7 @@ Tile *Board::get_top_tile(Tile &tile) {
 
 Tile *Board::get_right_tile(Tile &tile) {
   sf::Vector2u pos = tile.get_position();
-  if (pos.x < (SQUARE_SIZE - 1)) {
+  if (pos.x < (BOARD_SIZE - 1)) {
     return &m_tiles[pos.x + 1][pos.y];
   }
   return nullptr;
@@ -203,7 +189,7 @@ Tile *Board::get_right_tile(Tile &tile) {
 
 Tile *Board::get_bottom_tile(Tile &tile) {
   sf::Vector2u pos = tile.get_position();
-  if (pos.y < (SQUARE_SIZE - 1)) {
+  if (pos.y < (BOARD_SIZE - 1)) {
     return &m_tiles[pos.x][pos.y + 1];
   }
   return nullptr;
