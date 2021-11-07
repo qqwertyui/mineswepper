@@ -9,18 +9,19 @@ Game::Game()
 void Game::run() {
   load_resources();
 
+  m_background = std::make_unique<Background>(
+      sf::IntRect({0, 0, Window::WIDTH, Window::HEIGHT}));
   m_board = std::make_unique<Board>(sf::IntRect({0, 60, 480, 480}));
   m_board_status = std::make_unique<BoardStatus>(sf::IntRect({0, 0, 480, 60}));
-  m_board_status->start_clock();
 
   sf::Clock clock;
-  sf::Time timer;
+  sf::Time timer = sf::Time::Zero;
   const sf::Time TIME_PER_FRAME = sf::seconds(1.f / Game::FPS);
   while (m_window.isOpen()) {
-    timer = sf::Time::Zero;
     while (timer < TIME_PER_FRAME) {
       timer += clock.restart();
     }
+    timer -= TIME_PER_FRAME;
     handleEvents();
     update();
     render();
@@ -37,21 +38,24 @@ void Game::handleEvents() {
         m_window.close();
       }
     } else if (event.type == sf::Event::MouseButtonPressed) {
-      Button &btn = m_board_status->get_button();
-      if (btn.is_hover(
+      Button &reset_button = m_board_status->get_button();
+      if (reset_button.is_hover(
               sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-        btn.click();
-        m_board->reset();
-        m_board_status->start_clock();
+        reset_button.click();
+        restart_game();
+      } else {
+        if (m_board_status->is_clock_started() == false) {
+          m_board_status->start_clock();
+        }
+        m_board->click(event.mouseButton.button,
+                       sf::Vector2u(event.mouseButton.x, event.mouseButton.y));
       }
-      m_board->click(event.mouseButton.button,
-                     sf::Vector2u(event.mouseButton.x, event.mouseButton.y));
     } else if (event.type == sf::Event::MouseMoved) {
       m_board->highlight_active_tile(
           sf::Vector2u(event.mouseMove.x, event.mouseMove.y));
     } else if (event.type == sf::Event::MouseButtonReleased) {
-      Button &btn = m_board_status->get_button();
-      btn.release();
+      Button &reset_button = m_board_status->get_button();
+      reset_button.release();
     }
   }
 }
@@ -65,6 +69,7 @@ void Game::update() {
 
 void Game::render() {
   m_window.clear(sf::Color::White);
+  m_window.draw(*m_background);
   m_window.draw(*m_board_status);
   m_window.draw(*m_board);
   m_window.display();
@@ -79,8 +84,7 @@ void Game::load_resources() {
   TextureHolder::load(Textures::TILE_EXPLODED, "assets/tile_exploded.png");
   TextureHolder::load(Textures::BOMB, "assets/bomb.png");
   TextureHolder::load(Textures::FLAG, "assets/flag.png");
-  TextureHolder::load(Textures::STATS_BACKGROUND,
-                      "assets/statistics_background.png");
+  TextureHolder::load(Textures::BACKGROUND, "assets/background.png");
   TextureHolder::load(Textures::DIGITAL_DISPLAY_DIGITS,
                       "assets/digital_display_digits.png");
   TextureHolder::load(Textures::BUTTON_CLICKED, "assets/button_clicked.png");
@@ -98,4 +102,9 @@ void Game::load_resources() {
 void Game::load_icon() {
   sf::Image *icon = ImageHolder::get(Images::ICON);
   m_window.setIcon(icon->getSize().x, icon->getSize().y, icon->getPixelsPtr());
+}
+
+void Game::restart_game() {
+  m_board->reset();
+  m_board_status->stop_clock();
 }
