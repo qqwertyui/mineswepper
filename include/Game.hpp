@@ -5,7 +5,6 @@
 #include "Board.hpp"
 #include "BoardStatus.hpp"
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 
 class Game : public sf::NonCopyable {
 public:
@@ -19,8 +18,8 @@ private:
 
   void restart_game();
 
-  void load_icon();
   void load_resources();
+  void load_icon();
 
   sf::RenderWindow m_window;
   std::unique_ptr<Board> m_board = nullptr;
@@ -29,8 +28,8 @@ private:
 
   static constexpr double FPS = 60.f;
   struct Window {
-    static constexpr int WIDTH = 480;
-    static constexpr int HEIGHT = 540;
+    static constexpr unsigned int WIDTH = 480;
+    static constexpr unsigned int HEIGHT = 540;
   };
 };
 

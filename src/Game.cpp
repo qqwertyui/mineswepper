@@ -50,12 +50,12 @@ void Game::handleEvents() {
         m_board->click(event.mouseButton.button,
                        sf::Vector2u(event.mouseButton.x, event.mouseButton.y));
       }
-    } else if (event.type == sf::Event::MouseMoved) {
-      m_board->highlight_active_tile(
-          sf::Vector2u(event.mouseMove.x, event.mouseMove.y));
     } else if (event.type == sf::Event::MouseButtonReleased) {
       Button &reset_button = m_board_status->get_button();
       reset_button.release();
+    } else if (event.type == sf::Event::MouseMoved) {
+      m_board->highlight_active_tile(
+          sf::Vector2u(event.mouseMove.x, event.mouseMove.y));
     }
   }
 }
@@ -97,6 +97,7 @@ void Game::load_resources() {
   SoundManager::load(Sounds::TILE_CLICK, "audio/tile_click.wav");
   SoundManager::load(Sounds::TILE_FLAG_TOGGLE, "audio/tile_flag_toggle.wav");
   SoundManager::load(Sounds::BOMB_EXPLOSION, "audio/bomb_explosion.wav");
+  SoundManager::load(Sounds::WIN_SOUND, "audio/win_sound.wav");
 }
 
 void Game::load_icon() {
