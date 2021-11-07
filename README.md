@@ -9,6 +9,6 @@ To build the project you will need:
 - Compiler with c++14 support
 
 ##### Steps
-git clone https://github.com/qqwertyui/mineswepper.git && cd mineswepper
-cmake .
-cmake --build .
+- git clone https://github.com/qqwertyui/mineswepper.git && cd mineswepper
+- cmake .
+- cmake --build .
