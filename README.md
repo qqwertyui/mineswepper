@@ -1,5 +1,7 @@
 ### SFML Mineswepper
 
+![Screenshot from the game](screenshot.png)
+
 #### About
 Simple mineswepper game with fixed map size (this can be changed by changing map size by and compiling the project by yourself). 
 
